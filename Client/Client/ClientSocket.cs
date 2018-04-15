@@ -1,11 +1,8 @@
-﻿using Kzar.ASN1.BER;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
+
 
 namespace Client
 {
@@ -18,6 +15,7 @@ namespace Client
         public string IPString { get { return address; } }
         public int PortString { get { return port; } }
         Socket sender;
+        static public Object lockObject;
 
 
         public ClientSocket(string _address, int _port)
@@ -33,11 +31,15 @@ namespace Client
             ipAddr = IPAddress.Parse(address);
             ipEndPoint = new IPEndPoint(ipAddr, port);
         }
+
+
         public void Init()
         {
             sender = new Socket(ipAddr.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             sender.Connect(ipEndPoint);
         }
+
+
         public void Send(byte[] data)
         {
             int bytesSent = sender.Send(data);
@@ -45,12 +47,15 @@ namespace Client
 
         public byte[] Recieve()
         {
+
             int bytesCount = 0;
             byte[] data = new byte[1024];
             bytesCount = sender.Receive(data);
             byte[] normalizeData = new byte[bytesCount];
             Array.Copy(data, normalizeData, bytesCount);
+
             return normalizeData;
+
         }
 
         public void Refuse()

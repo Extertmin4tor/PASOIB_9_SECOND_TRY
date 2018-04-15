@@ -17,86 +17,103 @@ namespace Server
 {
     class Crypter
     {
-        private Gost3411CryptoServiceProvider hasher = new Gost3411CryptoServiceProvider();
-        private Gost28147CryptoServiceProvider encrypter = new Gost28147CryptoServiceProvider();
-
-        public byte[] hash = null;
-        public byte[] signature = null;
-        public byte[] sCert = null;
-        public DateTime sTime;
-        public byte[] hMsg = null;
-
-        public byte[] eMsg = null;
-
+    
         public X509Certificate2Collection Certificates { get; } = new X509Certificate2Collection();
-        SecureString pswd = new SecureString();
+        private Gost28147 symKey = new Gost28147CryptoServiceProvider();
+        public X509Certificate2 currentCertificate { get; set; }
+        public byte[] IV { get; set; }
+
 
         public Crypter()
         {
             // set certificates
-            X509Store store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
-            store.Open(OpenFlags.ReadOnly);
-            foreach (var cert in store.Certificates)
+                X509Store store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
+                store.Open(OpenFlags.ReadOnly);
+                foreach (var cert in store.Certificates)
+                {
+                    if (Regex.IsMatch(cert.FriendlyName, @"test"))
+                        Certificates.Add(cert);
+                }
+
+        }
+        public byte[] Decrypt(byte[] data)
+        {
+            symKey.IV = IV;
+            byte[] targetBytes = new byte[1024];
+            int currentPosition = 0;
+
+            // Создаем дешифратор для ГОСТ.
+            CPCryptoAPITransform cryptoTransform =
+                (CPCryptoAPITransform)symKey.CreateDecryptor();
+
+            int inputBlockSize = cryptoTransform.InputBlockSize;
+            int sourceByteLength = data.Length;
+
+            try
             {
-                if (Regex.IsMatch(cert.FriendlyName, @"test"))
-                    Certificates.Add(cert);
+                int numBytesRead = 0;
+                while (sourceByteLength - currentPosition >= inputBlockSize)
+                {
+                    // Преобразуем байты начиная с currentPosition в массиве 
+                    // sourceBytes, записывая результат в массив targetBytes.
+                    numBytesRead = cryptoTransform.TransformBlock(
+                        data,
+                        currentPosition,
+                        inputBlockSize,
+                        targetBytes,
+                        currentPosition);
+
+                    currentPosition += numBytesRead;
+                }
+
+                // Преобразуем последний блок.
+                byte[] finalBytes = cryptoTransform.TransformFinalBlock(
+                    data,
+                    currentPosition,
+                    sourceByteLength - currentPosition);
+
+                // Записываем последний расшифрованный блок 
+                // в массив targetBytes.
+                finalBytes.CopyTo(targetBytes, currentPosition);
             }
-
+            catch (Exception ex)
+            {
+                Console.WriteLine("Caught unexpected exception:" + ex.ToString());
+            }
+            // Убираем неиспользуемые байты из массива.
+            return TrimArray(targetBytes);
         }
 
-        public void Encrypt(byte[] msg, int certIndex)
+        private static byte[] TrimArray(byte[] targetArray)
         {
-            if (certIndex < 0 || certIndex > Certificates.Count)
-                throw new Exception("Некорретктный индекс сертификата");
-            EnvelopedCms cms = new EnvelopedCms(new ContentInfo(msg), new AlgorithmIdentifier(new Oid("1.2.643.2.2.21")));
-            CmsRecipient recip = new CmsRecipient(SubjectIdentifierType.IssuerAndSerialNumber, Certificates[certIndex]);
-            cms.Encrypt(recip);
-            eMsg = cms.Encode();
-            string aa = "";
-            foreach (var item in cms.ContentInfo.Content)
-                aa += item.ToString("x") + ":";
+            var enum1 = targetArray.GetEnumerator();
+            int i = 0;
+            while (enum1.MoveNext())
+            {
+                if (enum1.Current.ToString().Equals("0"))
+                {
+                    break;
+                }
+                i++;
+            }
+            // Создаем новый массив нужного размера.
+            byte[] returnedArray = new byte[i];
+            for (int j = 0; j < i; j++)
+            {
+                returnedArray[j] = targetArray[j];
+            }
+            return returnedArray;
+        }
 
-        }
-        public byte[] CreateEMsg()
-        {
-            return eMsg;
-        }
-        public void ComputeHash(byte[] msg)
-        {
-            hash = hasher.ComputeHash(msg);
-            hMsg = msg;
-        }
-        public void Sign(int certIndex)
-        {
-            if (certIndex < 0 || certIndex > Certificates.Count || hash == null)
-                throw new Exception("Некорректный индекс сертификата или хэш равен нулю");
 
-            var gost = (Gost3410CryptoServiceProvider)Certificates[certIndex].PrivateKey;
-            if (gost == null)
-                throw new Exception("У сертификата нет приватного ключа");
-            gost.SetContainerPassword(pswd);
-            signature = gost.CreateSignature(hash);
-            sCert = Certificates[certIndex].Export(X509ContentType.Cert);
-            sTime = DateTime.UtcNow;
-        }
-        public byte[] CreateSignature()
+        public void SetSymmetrKey(byte[] data)
         {
-            //...
-            BERelement mainSeq = new BERelement(0x30);
-            //...
-            BERelement signSeq = new BERelement(0x30);
-            signSeq.AddItem(new BERelement(0x0c, Encoding.UTF8.GetBytes("sign")));
-            signSeq.AddItem(new BERelement(0x02, signature));
-            signSeq.AddItem(new BERelement(0x02, sCert));
-            signSeq.AddItem(new BERelement(0x0c, Encoding.UTF8.GetBytes(sTime.ToString())));
-            //...
-            BERelement fileSeq = new BERelement(0x30);
-            fileSeq.AddItem(new BERelement(0x02, BitConverter.GetBytes(hMsg.Length)));
-            //...
-            mainSeq.AddItem(signSeq);
-            mainSeq.AddItem(fileSeq);
-            var aa = mainSeq.GetEncodedPacket();
-            return mainSeq.GetEncodedPacket().Concat(hMsg).ToArray();
+            Gost2012_256KeyExchangeDeformatter deformatter = new Gost2012_256KeyExchangeDeformatter(currentCertificate.PrivateKey);
+            GostKeyTransport encKey = new GostKeyTransport();
+            encKey.Decode(data);
+            symKey = deformatter.DecryptKeyExchange(encKey) as Gost28147;
         }
+
+  
     }
 }

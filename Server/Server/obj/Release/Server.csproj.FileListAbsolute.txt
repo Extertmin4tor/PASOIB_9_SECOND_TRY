@@ -1,0 +1,16 @@
+G:\LABS\ПрогАппСОИБ\PASOIB_9_SECOND_TRY\Server\Server\bin\Release\Server.exe.config
+G:\LABS\ПрогАппСОИБ\PASOIB_9_SECOND_TRY\Server\Server\bin\Release\Server.exe
+G:\LABS\ПрогАппСОИБ\PASOIB_9_SECOND_TRY\Server\Server\bin\Release\Server.pdb
+G:\LABS\ПрогАппСОИБ\PASOIB_9_SECOND_TRY\Server\Server\bin\Release\BERcodec.dll
+G:\LABS\ПрогАппСОИБ\PASOIB_9_SECOND_TRY\Server\Server\bin\Release\CryptoPro.Sharpei.Base.dll
+G:\LABS\ПрогАппСОИБ\PASOIB_9_SECOND_TRY\Server\Server\bin\Release\CryptoPro.Sharpei.ServiceModel.dll
+G:\LABS\ПрогАппСОИБ\PASOIB_9_SECOND_TRY\Server\Server\bin\Release\CryptoPro.Sharpei.ServiceModel45.dll
+G:\LABS\ПрогАппСОИБ\PASOIB_9_SECOND_TRY\Server\Server\bin\Release\CryptoPro.Sharpei.Xml.dll
+G:\LABS\ПрогАппСОИБ\PASOIB_9_SECOND_TRY\Server\Server\bin\Release\CryptoPro.Sharpei.Base.xml
+G:\LABS\ПрогАппСОИБ\PASOIB_9_SECOND_TRY\Server\Server\bin\Release\CryptoPro.Sharpei.ServiceModel.xml
+G:\LABS\ПрогАппСОИБ\PASOIB_9_SECOND_TRY\Server\Server\bin\Release\CryptoPro.Sharpei.ServiceModel45.xml
+G:\LABS\ПрогАппСОИБ\PASOIB_9_SECOND_TRY\Server\Server\bin\Release\CryptoPro.Sharpei.Xml.xml
+G:\LABS\ПрогАппСОИБ\PASOIB_9_SECOND_TRY\Server\Server\obj\Release\Server.csprojResolveAssemblyReference.cache
+G:\LABS\ПрогАппСОИБ\PASOIB_9_SECOND_TRY\Server\Server\obj\Release\Server.csproj.CoreCompileInputs.cache
+G:\LABS\ПрогАппСОИБ\PASOIB_9_SECOND_TRY\Server\Server\obj\Release\Server.exe
+G:\LABS\ПрогАппСОИБ\PASOIB_9_SECOND_TRY\Server\Server\obj\Release\Server.pdb
